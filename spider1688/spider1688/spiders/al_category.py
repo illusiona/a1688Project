@@ -1,9 +1,14 @@
+import random
 
+from selenium.webdriver.common.by import By
 from spider1688.items import Product
 from scrapy.cmdline import execute
+from selenium import webdriver
 from lxml import etree
+import pyautogui
 import datetime
 import scrapy
+import time
 import json
 import re
 
@@ -12,11 +17,25 @@ class AlCategorySpider(scrapy.Spider):
     # debug
     name = "al_category"
     page_num = '2'
-    allowed_domains = ['1688.com']
-    # 滑动加载数据
-    start_urls = [r'https://search.1688.com/service/companyInfoSearchDataService?keywords=%C8%C6%CF%DF%BB%FA&hideMainTab=1&spm=a26352.13672862.searchbox.input&'
-                  f'beginPage={page_num}&province=%E5%B9%BF%E4%B8%9C&async=true&asyncCount=6&pageSize=20&requestId=faztmSHPEtXRyGetejiSh2jE4fse6wFthYyJiDWnYmwKPzCW&sessionId=b83181af63e948879cdc5419ddfc73c0&startIndex=0&pageName=findPCFactory&_bx-v=1.1.20']
+    # allowed_domains = ['1688.com']
     splicing = ''
+
+    start_urls = [r'https://search.1688.com/service/companyInfoSearchDataService?keywords=%C8%C6%CF%DF%BB%FA&spm='
+                  f'a26352.13672862.searchbox.input&%27f%27beginPage={page_num}&province=%E5%B9%BF%E4%B8%9C&async=false&a'
+                  r'syncCount=6&pageSize=20&pageName=findPCFactory&_bx-v=1.1.20']
+
+    def start_requests(self):
+        start_url_list = []
+        for i in range(1, 20):
+            start_url_list.append(r'https://search.1688.com/service/companyInfoSearchDataService?keywords='
+                                  f'%C8%C6%CF%DF%BB%FA&spm=a26352.13672862.searchbox.input&%27f%27beginPage={i}&p'
+                                  r'rovince=%E5%B9%BF%E4%B8%9C&async=false&asyncCount=6&pageSize=20&pageName=findPCFactory&_bx-v=1.1.20')
+
+        for i in range(0, 19):
+            time.sleep(1)
+            yield scrapy.Request(start_url_list[i], callback=self.parse, dont_filter=True)
+
+
     def parse(self, response):
         # print(response.body.decode('utf-8'))
         result = json.loads(response.body.decode('utf-8'))
@@ -24,7 +43,7 @@ class AlCategorySpider(scrapy.Spider):
         # 遍历列表
         for data in datas:
             item = Product()
-            # 大分类信息
+
             item.fields['company_name'] = data['factoryInfo']['company']
 
             item.fields['company_city'] = data['factoryInfo']['city']
@@ -32,11 +51,10 @@ class AlCategorySpider(scrapy.Spider):
             item.fields['company_detail_url'] = data['factoryInfo']['factoryDetailUrl']
 
             item.fields['company_detail_picture'] = data['factoryInfo']['picUrl']
-            # pic_url.append(data['factoryInfo']['picUrl'])
+
             item.fields['company_service'] = data['factoryInfo']['productionService']
 
             # 拼接全部商品页面url   可通过请求items.fields['company_picture']中进旺拼接得到
-            # items.fields['company_merch_url'] = data['']
 
             lis_num = 0
             item = Product()
@@ -45,8 +63,6 @@ class AlCategorySpider(scrapy.Spider):
             item.fields['company_merchandise'] = data['factoryOfferList'][lis_num]['simpleSubject']
 
             lis_num += 1
-            print(item.fields)
-            yield item
             yield scrapy.Request(item.fields['company_detail_url'], callback=self.detail_page, meta={'item': item})
 
         # vis detail page
@@ -106,19 +122,70 @@ class AlCategorySpider(scrapy.Spider):
 
         # 拼接全部商品页url
 
-        f_merch_url = re.split('[//.]',html.xpath('//*[@class="actionItem"]/@href')[0])[2]
+        f_merch_url = re.split('[/.]', html.xpath('//*[@class="actionItem"]/@href')[0])[2]
         item['company_merch_url'] = f'https://{f_merch_url}.1688.com/page/offerlist.htm?spm=0.0.wp_pc_common_topnav_38229151.0'
-
         yield scrapy.Request(item['company_merch_url'], callback=self.parse_all_merch, meta={'item': item})
 
     def parse_all_merch(self, response):
         item = response.meta['item']
         # 解析商页url 并拼接
+        # 初始化浏览器并配置参数开始无痕模式
+        option = webdriver.ChromeOptions()
+        option.add_argument('--incognito')
+        driver = webdriver.Chrome(options=option)
+        driver.maximize_window()
+        driver.get(item["company_merch_url"])
+        merch_name = []
+        merch_num = []
+        merch_price = []
+        time.sleep(random.randint(4, 6))
+        while True:
+            try:
+                j = 0  # 判断有多少个价格拆分的数据  随着翻页重置
+                for i in range(30):     # 30个商品，部分无推荐
+                    try:
+                        merch_name.append(driver.find_elements(by=By.XPATH, value='//*/div/p[@title]')[i].text)
+                        item['merch_name'] = merch_name
+                        merch_num.append(driver.find_elements(by=By.XPATH, value='//*[@title="累计销量"]')[i].text)
+                        item['merch_num'] = merch_num
+                        # 自带万 二级框带万 二级框只有小数点
+                        price = driver.find_elements(by=By.XPATH, value='//*[@style="position: relative; box-sizing: border-box; flex-direction: column; align-content: flex-start; flex-shrink: 0; margin-top: 0px; margin-bottom: 0px; color: rgb(255, 41, 0); font-size: 24px; line-height: 24px; font-weight: bold;"]')[i].text
+                        try:
+                            price_sec = driver.find_elements(by=By.XPATH, value='//*[@style="position: relative; box-sizing: border-box; flex-direction: column; '
+                                                                                'align-content: flex-start; flex-shrink: 0; margin-top: 0px; margin-bottom: 0px; '
+                                                                                'color: rgb(255, 41, 0); font-size: 24px; line-height: 24px; font-weight: bold;"]'
+                                                                                '/following-sibling::span')[j].text
+                            j += 1
+                            merch_price.append(price + price_sec)
+                            # 如果一级索引自带万字，则回滚二级框索引下表并pop list，再直接填入一级框内的内容
+                            if price[-1] == '万':
+                                j -= 1
+                                merch_price.pop()
+                                merch_price.append(price)
 
-        mer_id = ''
-        all_url = f'https://detail.1688.com/offer/{mer_id}.html?spm=a2615.7691456.wp_pc_common_offerlist_45753076.0'
+                        except:
+                            merch_price.append(price)
 
-        item['company_all_merch_url'] = ''
+                        item['merch_price'] = merch_price
+
+                    except:
+                        break
+
+                # 如果下一页的RGB值小于255，则当前页为最后一页
+                if int(driver.find_element(by=By.XPATH, value='//*/button[contains(@style,background)][2]').get_attribute('style')[16:19]) < 255:
+                    break
+
+                # 判断是否有下一页
+                driver.find_element(by=By.XPATH, value='//*/button[contains(@style,background)][2]').click()
+
+                # 留缓冲数据的时间
+                time.sleep(2)
+            except:
+                break
+        print(item)
+        yield item
+        driver.close()
+
 
 
 

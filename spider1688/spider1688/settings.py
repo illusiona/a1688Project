@@ -12,7 +12,7 @@ BOT_NAME = 'spider1688'
 SPIDER_MODULES = ['spider1688.spiders']
 NEWSPIDER_MODULE = 'spider1688.spiders'
 
-
+JOBDIR = '1688.com'  # crawl spider at breakpoint
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'spider1688 (+http://www.yourdomain.com)'
 
@@ -25,7 +25,7 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 3
+DOWNLOAD_DELAY = 5
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -50,9 +50,12 @@ ROBOTSTXT_OBEY = False
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'spider1688.middlewares.Spider1688DownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+    # 'spider1688.middlewares.Spider1688DownloaderMiddleware': 543,
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'spider1688.middlewares.Spider1688DownloaderMiddleware': 543,
+}
+
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -87,3 +90,30 @@ ITEM_PIPELINES = {
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 MYSQL_URL = 'localhost'
+
+
+PROXY_LIST = [
+    {"ip_port": "http://211.137.52.158:8080"},
+    {"ip_port": "http://111.47.154.34:53281"},
+    {"ip_port": "http://183.220.145.3:80"},
+    {"ip_port": "http://223.100.166.3:36945"},
+    {"ip_port": "http://120.194.42.157:38185"},
+    {"ip_port": "http://223.82.106.253:3128"},
+    {"ip_port": "http://117.141.155.244:53281"},
+    {"ip_port": "http://120.198.76.45:41443"},
+    {"ip_port": "http://123.136.8.122:3128"},
+    {"ip_port": "http://117.141.155.243:53281"},
+    {"ip_port": "http://183.196.168.194:9000"},
+    {"ip_port": "http://117.141.155.242:53281"},
+    {"ip_port": "http://183.195.106.118:8118"},
+    {"ip_port": "http://112.14.47.6:52024"},
+    {"ip_port": "http://218.204.153.156:8080"},
+    {"ip_port": "http://223.71.203.241:55443"},
+    {"ip_port": "http://117.141.155.241:53281"},
+    {"ip_port": "http://221.180.170.104:8080"},
+    {"ip_port": "http://183.247.152.98:53281"},
+    {"ip_port": "http://183.196.170.247:9000"},
+]
+
+
+

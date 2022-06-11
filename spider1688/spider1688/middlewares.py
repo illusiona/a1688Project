@@ -2,9 +2,12 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+from urllib3 import request
 
 from scrapy import signals
-
+from fake_useragent import UserAgent
+import requests
+import random
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
@@ -78,6 +81,9 @@ class Spider1688DownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
+        ua = UserAgent(verify_ssl=False, path=r'C:\Users\11246\PycharmProjects\a1688Project\spider1688\fake_useragent.json')
+        request.headers['User-Agent'] = ua.random
+
         return None
 
     def process_response(self, request, response, spider):
@@ -101,3 +107,4 @@ class Spider1688DownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+

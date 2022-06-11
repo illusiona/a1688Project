@@ -26,7 +26,6 @@ class Product(scrapy.Item):
     company_merchandise = scrapy.Field()       # 主营业产品
     company_address = scrapy.Field()           # 公司地址
     company_archive = scrapy.Field()           # 工厂档案
-    company_est_time = scrapy.Field()          # 成立时间
     company_turnover = scrapy.Field()          # 年交易额
     company_area = scrapy.Field()              # 公司面积
     company_staff = scrapy.Field()             # 员工总数
@@ -36,4 +35,8 @@ class Product(scrapy.Item):
     company_service = scrapy.Field()           # 公司服务
     company_merch_url = scrapy.Field()         # 商品页url
     company_detail_url = scrapy.Field()        # 公司详情页url
-    company_all_merch_url = scrapy.Field()     # 全部商品页详情url
+
+    merch_name = scrapy.Field()                # 全部商品商品名
+    merch_price = scrapy.Field()               # 全部商品价格
+    merch_num = scrapy.Field()                 # 全部商品成交量
+
