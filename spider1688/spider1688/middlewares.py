@@ -4,12 +4,26 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 from urllib3 import request
 
-from scrapy import signals
-from fake_useragent import UserAgent
-import requests
-import random
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+from fake_useragent import UserAgent
+from scrapy import signals
+import requests
+import random
+
+
+class ProxyMiddleware(object):
+    """设置Proxy"""
+    def __init__(self, ip):
+        self.ip = ip
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(ip=crawler.settings.get('PROXIES'))
+
+    def process_requests(self, request, spider):
+        ip = random.choice(self.ip)
+        request.meta['proxy'] = ip
 
 
 class Spider1688SpiderMiddleware:
@@ -81,7 +95,8 @@ class Spider1688DownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        ua = UserAgent(verify_ssl=False, path=r'C:\Users\11246\PycharmProjects\a1688Project\spider1688\fake_useragent.json')
+        ua = UserAgent(verify_ssl=False,
+                       path=r'C:\Users\11246\PycharmProjects\a1688Project\spider1688\fake_useragent.json')
         request.headers['User-Agent'] = ua.random
 
         return None
@@ -107,4 +122,7 @@ class Spider1688DownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+
 

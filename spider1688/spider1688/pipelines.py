@@ -6,7 +6,9 @@
 
 # useful for handling different item types with a single interface
 
-from spider1688.spiders.al_category import AlCategorySpider
+# from spider1688.spiders.al_category import AlCategorySpider
+# from ..spider1688.spiders.al_category import AlCategorySpider
+from .spiders.al_category import AlCategorySpider
 from itemadapter import ItemAdapter
 import openpyxl
 import pymysql

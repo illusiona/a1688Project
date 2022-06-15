@@ -1,7 +1,7 @@
 import random
 
 from selenium.webdriver.common.by import By
-from spider1688.items import Product
+from ..items import Product
 from scrapy.cmdline import execute
 from selenium import webdriver
 from lxml import etree
@@ -20,18 +20,18 @@ class AlCategorySpider(scrapy.Spider):
     # allowed_domains = ['1688.com']
     splicing = ''
 
-    start_urls = [r'https://search.1688.com/service/companyInfoSearchDataService?keywords=%C8%C6%CF%DF%BB%FA&spm='
-                  f'a26352.13672862.searchbox.input&%27f%27beginPage={page_num}&province=%E5%B9%BF%E4%B8%9C&async=false&a'
-                  r'syncCount=6&pageSize=20&pageName=findPCFactory&_bx-v=1.1.20']
+    # start_urls = [r'https://search.1688.com/service/companyInfoSearchDataService?keywords=%C8%C6%CF%DF%BB%FA&spm='
+    #               f'a26352.13672862.searchbox.input&%27f%27beginPage={page_num}&province=%E5%B9%BF%E4%B8%9C&async=false&a'
+    #               r'syncCount=6&pageSize=20&pageName=findPCFactory&_bx-v=1.1.20']
 
     def start_requests(self):
         start_url_list = []
-        for i in range(1, 20):
+        for i in range(1, 30):
             start_url_list.append(r'https://search.1688.com/service/companyInfoSearchDataService?keywords='
                                   f'%C8%C6%CF%DF%BB%FA&spm=a26352.13672862.searchbox.input&%27f%27beginPage={i}&p'
                                   r'rovince=%E5%B9%BF%E4%B8%9C&async=false&asyncCount=6&pageSize=20&pageName=findPCFactory&_bx-v=1.1.20')
 
-        for i in range(0, 19):
+        for i in range(0, 29):
             time.sleep(1)
             yield scrapy.Request(start_url_list[i], callback=self.parse, dont_filter=True)
 
@@ -183,8 +183,9 @@ class AlCategorySpider(scrapy.Spider):
             except:
                 break
         print(item)
-        yield item
         driver.close()
+        yield item
+
 
 
 
